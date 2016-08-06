@@ -1,0 +1,3 @@
+dependencies:
+Pubsubclient:	platformio lib install 89
+WifiManger:	platformio lib install 567
