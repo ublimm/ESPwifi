@@ -12,6 +12,7 @@
 #include "types.h"
 
 #define SETUP_TRIGGER_PIN 5
+#define AHC_VERSION 0.1.1
 
 int isConfigMode = 4;
 eepConfigData_t cfg;
@@ -59,6 +60,14 @@ void loadConfig() {
   EEPROM.end();
 }
 
+void sendToOutChannel(String message)
+{
+  char channel_out[69];
+  strcpy(channel_out, cfg.MQTTChannel);
+  strcat(channel_out, "/output");
+  client.publish(channel_out, message.c_str());
+}
+
 void MQTTCallback(char* topic, byte* payload, unsigned int length) {
 
   char msg[length+1];
@@ -85,6 +94,7 @@ void MQTTCallback(char* topic, byte* payload, unsigned int length) {
     }
     Serial.println("Putting output for device on.");
   }
+  delay(5);
   if (msg[2] == 'o' && msg[3] == 'f')
   {
     if (device == 0)
@@ -97,12 +107,19 @@ void MQTTCallback(char* topic, byte* payload, unsigned int length) {
     }
     Serial.println("Putting output for device off.");
   }
+  delay(5);
+  if (msg[2] == 's' && msg[3] == 't')
+  {
+    sendToOutChannel("Version: AHC_VERSION");
+    sendToOutChannel("Device 0: " + digitalRead(13));
+    sendToOutChannel("Device 1: " + digitalRead(12));
+  }
 
   //memset(msg, 0, sizeof(msg));
   //strcpy(msg, (char*)payload);
   Serial.write("Message: ");
   Serial.println(msg);
-  delay(20);
+  delay(5);
 
   //char channel_out[69];
   //strcpy(channel_out, cfg.MQTTChannel);
@@ -129,14 +146,16 @@ void reconnect() {
     //String uniqueName = "AHC" + ESP.getChipId();
     char name [31];
     itoa(ESP.getChipId(), name, 10);
-		if (client.connect(name)) {
+    char channel_out[69];
+    strcpy(channel_out, cfg.MQTTChannel);
+    strcat(channel_out, "/status");
+
+		if (client.connect(name), channel_out, 2, true, "device offline (testament)") {
       delay(50);
-      char channel_out[69];
-      strcpy(channel_out, cfg.MQTTChannel);
-      strcat(channel_out, "/status");
+
 			// Once connected, publish an announcement...
 			//client.publish("Ahc/test/status", "reconnected");
-      client.publish(channel_out, "reconnected");
+      client.publish(channel_out, "device online");
       delay(50);
 			// ... and resubscribe
 			client.subscribe(cfg.MQTTChannel);
