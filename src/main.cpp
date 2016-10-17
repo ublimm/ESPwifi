@@ -12,7 +12,7 @@
 #include "types.h"
 
 #define SETUP_TRIGGER_PIN 5
-#define AHC_VERSION 0.1.1
+#define AHC_VERSION "0.1.2"
 
 int isConfigMode = 4;
 eepConfigData_t cfg;
@@ -110,9 +110,21 @@ void MQTTCallback(char* topic, byte* payload, unsigned int length) {
   delay(5);
   if (msg[2] == 's' && msg[3] == 't')
   {
-    sendToOutChannel("Version: AHC_VERSION");
-    sendToOutChannel("Device 0: " + digitalRead(13));
-    sendToOutChannel("Device 1: " + digitalRead(12));
+    sendToOutChannel("Version:");
+    sendToOutChannel(AHC_VERSION);
+    char stat [1];
+
+    char dev0 [10];
+    strcpy(dev0, "dev0:");
+    itoa(digitalRead(13), stat, 10);
+    strcat(dev0, stat);
+    sendToOutChannel(dev0);
+
+    char dev1 [10];
+    strcpy(dev1, "dev1:");
+    itoa(digitalRead(12), stat, 10);
+    strcat(dev1, stat);
+    sendToOutChannel(dev1);
   }
 
   //memset(msg, 0, sizeof(msg));
@@ -182,6 +194,8 @@ void setup()
   {
     WiFi.persistent(true);
     Serial.println("entering setup...");
+    eraseConfig();
+    Serial.println("Configuration erased..");
     WiFiManager wifiManager;
     wifiManager.setSaveConfigCallback(saveConfigCallback);
 
@@ -199,7 +213,7 @@ void setup()
     strcpy(cfg.MQTTHost, custom_mqtt_server.getValue());
     strcpy(cfg.MQTTChannel, custom_mqtt_channel.getValue());
 
-    eraseConfig();
+
     saveConfig();
     ESP.restart();
   }
