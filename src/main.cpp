@@ -17,13 +17,6 @@
 int isConfigMode = 4;
 eepConfigData_t cfg;
 
-//const char* ssid = "EasyBox-845E26";
-//const char* password = "KDmQaGNU5";
-//const char* mqtt_server = "192.168.2.127";
-//const char* channel_inc = "uha/studierturm/test"; Ahc/test
-//const char* channel_out = "uha/studierturm/test/status";
-//const char* uniqueMQTTClientName = "studierturm_test";
-
 WiFiClient espClient;
 PubSubClient client(espClient);
 
@@ -127,17 +120,7 @@ void MQTTCallback(char* topic, byte* payload, unsigned int length) {
     sendToOutChannel(dev1);
   }
 
-  //memset(msg, 0, sizeof(msg));
-  //strcpy(msg, (char*)payload);
-  Serial.write("Message: ");
-  Serial.println(msg);
   delay(5);
-
-  //char channel_out[69];
-  //strcpy(channel_out, cfg.MQTTChannel);
-  //strcat(channel_out, "/status");
-  //client.publish(channel_out, "Message received: ");
-  //client.publish(channel_out, msg);
 }
 
 // Blocking funktion until wifi is connected!
@@ -155,20 +138,18 @@ void reconnect() {
 	// Loop until we're reconnected
 	while (!client.connected()) {
 		// Attempt to connect
-    //String uniqueName = "AHC" + ESP.getChipId();
-    char name [31];
-    itoa(ESP.getChipId(), name, 10);
-    char channel_out[69];
-    strcpy(channel_out, cfg.MQTTChannel);
-    strcat(channel_out, "/status");
-
+	    char name [31];
+	    itoa(ESP.getChipId(), name, 10);
+	    char channel_out[69];
+	    strcpy(channel_out, cfg.MQTTChannel);
+	    strcat(channel_out, "/status");
+	
 		if (client.connect(name), channel_out, 2, true, "device offline (testament)") {
-      delay(50);
-
+		    delay(50);
+		
 			// Once connected, publish an announcement...
-			//client.publish("Ahc/test/status", "reconnected");
-      client.publish(channel_out, "device online");
-      delay(50);
+		    client.publish(channel_out, "device online");
+		    delay(50);
 			// ... and resubscribe
 			client.subscribe(cfg.MQTTChannel);
 		}
